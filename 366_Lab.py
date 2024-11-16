@@ -1,8 +1,5 @@
 import random
 import matplotlib.pyplot as plt
-
-
-# Utility function for random sampling from a distribution
 def select_from_dist(item_prob_dist):
     ranreal = random.random()
     for item, prob in item_prob_dist.items():
@@ -11,8 +8,6 @@ def select_from_dist(item_prob_dist):
         ranreal -= prob
     raise RuntimeError(f"{item_prob_dist} is not a valid probability distribution")
 
-
-# Plotting Class
 class PlotHistory:
     def __init__(self, agent, environment):
         self.agent = agent
@@ -21,7 +16,6 @@ class PlotHistory:
     def plot_history(self):
         plt.figure(figsize=(14, 10))
 
-        # Price history plot
         plt.subplot(2, 1, 1)
         plt.plot(self.environment.price_history, label="Price", color="blue", linewidth=2)
         plt.axhline(
@@ -36,9 +30,9 @@ class PlotHistory:
         plt.grid(True, linestyle="--", alpha=0.6)
         plt.legend()
 
-        # Add annotations for significant price drops
+    
         for i, price in enumerate(self.environment.price_history):
-            if price < 0.8 * self.agent.average_price:  # Discount threshold
+            if price < 0.8 * self.agent.average_price:  
                 plt.annotate(
                     "Significant Drop",
                     (i, price),
@@ -49,7 +43,7 @@ class PlotHistory:
                     color="red",
                 )
 
-        # Stock levels and purchases plot
+
         plt.subplot(2, 1, 2)
         plt.plot(
             self.environment.stock_history,
@@ -78,7 +72,7 @@ class PlotHistory:
         plt.show()
 
 
-# Environment Class
+
 class SmartphoneEnvironment:
     price_delta = [10, -20, 5, -15, 0, 25, -30, 20, -5, 0]
     noise_sd = 5
@@ -105,9 +99,7 @@ class SmartphoneEnvironment:
         self.stock_history.append(self.stock)
         self.price_history.append(self.price)
         return {"price": self.price, "stock": self.stock}
-
-
-# Controller Classes
+        
 class PriceMonitoringController:
     def __init__(self, agent, discount_threshold=0.2):
         self.agent = agent
@@ -135,10 +127,10 @@ class OrderingController:
 
     def order(self, percept):
         current_price = percept["price"]
-        # Check for discount and low stock condition
+        
         if self.price_controller.monitor(percept) and not self.inventory_controller.monitor(percept):
             discount_ratio = (self.price_controller.agent.average_price - current_price) / self.price_controller.agent.average_price
-            tobuy = int(15 * (1 + discount_ratio))  # Buy more based on discount size
+            tobuy = int(15 * (1 + discount_ratio))  
             print(f"Discount detected! Discount ratio: {discount_ratio:.2f}. Ordering {tobuy} units.")
             return tobuy
         elif self.inventory_controller.monitor(percept):
@@ -151,11 +143,11 @@ class OrderingController:
 # Agent Class
 class SmartphoneAgent:
     def __init__(self):
-        self.average_price = 600  # Initial average price
-        self.buy_history = []  # Tracks buying decisions
-        self.total_spent = 0  # Tracks total expenditure
+        self.average_price = 600  
+        self.buy_history = []
+        self.total_spent = 0  
 
-        # Controllers
+        
         self.price_controller = PriceMonitoringController(self)
         self.inventory_controller = InventoryMonitoringController()
         self.ordering_controller = OrderingController(self.price_controller, self.inventory_controller)
@@ -164,18 +156,17 @@ class SmartphoneAgent:
         current_price = percept["price"]
         self.average_price += (current_price - self.average_price) * 0.1
 
-        # Determine monitoring results
+        
         price_discount = self.price_controller.monitor(percept)
         low_stock = self.inventory_controller.monitor(percept)
 
-        # Use the ordering controller to decide how many units to buy
+        
         tobuy = self.ordering_controller.order(percept)
-
-        # Track expenditure and decisions
+        
         self.total_spent += tobuy * current_price
         self.buy_history.append(tobuy)
 
-        # Print detailed decision log
+        
         print(f"Time: {len(self.buy_history) - 1}")
         print(f"Price: {current_price:.0f}, Stock: {percept['stock']}")
         print(
@@ -191,7 +182,7 @@ class SmartphoneAgent:
         return {"buy": tobuy}
 
 
-# Simulation Class
+
 class Simulation:
     def __init__(self, agent, environment):
         self.agent = agent
@@ -204,7 +195,6 @@ class Simulation:
             self.percept = self.environment.do_action(action)
 
 
-# Main Simulation
 if __name__ == "__main__":
     environment = SmartphoneEnvironment()
     agent = SmartphoneAgent()
